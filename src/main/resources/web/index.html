@@ -141,19 +141,21 @@
                 };
 
                 $rootScope.sync = function () {
-                    vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': $localStorage.people }, true)
-                            .then(function (reply) {
-                                angular.forEach(reply.people, function (serverPerson) {
-                                    angular.forEach($localStorage.people, function (localPerson) {
-                                        if (serverPerson.email == localPerson.email) {
-                                            localPerson.dirty = (serverPerson.presence != localPerson.presence);
-                                        }
+                    if ($localStorage.event) {
+                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': $localStorage.people }, true)
+                                .then(function (reply) {
+                                    angular.forEach(reply.people, function (serverPerson) {
+                                        angular.forEach($localStorage.people, function (localPerson) {
+                                            if (serverPerson.email == localPerson.email) {
+                                                localPerson.dirty = (serverPerson.presence != localPerson.presence);
+                                            }
+                                        });
                                     });
+                                })
+                                .catch(function (error) {
+                                    console.error('Cannot edit-presence from event', $localStorage.event, error);
                                 });
-                            })
-                            .catch(function (error) {
-                                console.error('Cannot edit-presence from event', $localStorage.event, error);
-                            });
+                    }
                 };
             });
 </script>
