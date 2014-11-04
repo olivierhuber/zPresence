@@ -98,7 +98,6 @@
                 $rootScope.eventbus = false;
 
                 $rootScope.$on('vertx-eventbus.system.connected', function () {
-                    console.log('vertx-eventbus.system.connected');
                     $rootScope.eventbus = true;
 
                     vertxEventBusService
@@ -117,7 +116,6 @@
                 });
 
                 $rootScope.$on('vertx-eventbus.system.disconnected', function () {
-                    console.log('vertx-eventbus.system.disconnected');
                     $rootScope.eventbus = false;
                 });
 
