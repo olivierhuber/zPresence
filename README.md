@@ -1,5 +1,9 @@
 # ZenPresence
 
+ISSUES
+===
+Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement...
+
 BUILD
 ---
     mvn clean package
