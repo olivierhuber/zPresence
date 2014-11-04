@@ -1,0 +1,15 @@
+{
+    "main": "bootstrap.js",
+
+    "includes": "io.vertx~mod-web-server~2.0.0-final,io.vertx~lang-rhino~2.1.1,io.vertx~lang-js~1.1.0",
+
+    "description": "zPresence",
+    "licenses": ["The Apache Software License Version 2.0"],
+    "author": "Olivier HUBER",
+
+    "developers": ["Olivier HUBER"],
+    "keywords": ["zenika", "prevayler"],
+    "homepage": "zpresence.zenika.com",
+
+    "auto-redeploy": true
+}
