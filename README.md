@@ -4,16 +4,14 @@ ISSUES
 ===
 Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement...
 
-BUILD
+BUILD & RUN
 ---
     mvn clean package
     cd target
     vertx pulldeps com.zenika~zpresence~1.2.0
     vertx fatjar com.zenika~zpresence~1.2.0
 
-RUN
----
-java -jar zpresence-1.2.0-fat.jar -conf default.conf
+    java -jar zpresence-1.2.0-fat.jar -conf ../src/main/resources/default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
