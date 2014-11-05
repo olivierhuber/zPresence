@@ -10,6 +10,10 @@
         body {
             padding-top: 70px;
         }
+        .first-letter {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -61,8 +65,9 @@
             </div>
         </div>
         <ul class="list-group">
+            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'|firstLetter" ng-if="person.firstLetter"><span ng-bind="person.firstLetter"></span></li>
             <li class="list-group-item"
-                ng-repeat="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'"
+                ng-repeat-end
                 ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
                 <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
                     <span ng-if="person.presence">présent</span>
@@ -95,6 +100,15 @@
                     return _.reduce(people, function (count, p) {
                         return p.presence ? count + 1 : count;
                     }, 0);
+                }
+            })
+            .filter('firstLetter', function () {
+                return function (people) {
+                    var firstLetter;
+                    return _.each(people, function(person){
+                        person.firstLetter = (person.lastname[0] != firstLetter) ? person.lastname[0] : null;
+                        firstLetter = person.lastname[0];
+                    });
                 }
             })
             .run(function ($rootScope, $localStorage, vertxEventBusService) {
