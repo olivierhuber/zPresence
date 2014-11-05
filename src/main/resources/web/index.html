@@ -55,7 +55,7 @@
                 </div>
                 <div class="checkbox col-xs-4">
                     <label>
-                        <input type="checkbox" ng-model="filter.notPresent" ng-true-value="true" ng-false-value="false"> non présent
+                        <input type="checkbox" ng-model="filter.notPresent"> non présent
                     </label>
                 </div>
             </div>
@@ -64,7 +64,7 @@
             <li class="list-group-item"
                 ng-repeat="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'"
                 ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
-                <button type="button" class="pull-right btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
+                <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
                     <span ng-if="person.presence">présent</span>
                     <span ng-if="!person.presence">non présent</span>
                 </button>
@@ -145,8 +145,12 @@
                 $rootScope.select = function (event) {
                     vertxEventBusService.send('prevayler-store', { action: 'get-people', 'event': event }, true)
                             .then(function (reply) {
-                                $localStorage.event = event;
-                                $localStorage.people = reply.people;
+                                if (reply.status == 'ok') {
+                                    $localStorage.event = event;
+                                    $localStorage.people = reply.people;
+                                } else {
+                                    console.error('get-events returned with error', reply.message);
+                                }
                             })
                             .catch(function (error) {
                                 console.error('Cannot get-people from event', event, error);
@@ -157,13 +161,17 @@
                     if ($localStorage.event) {
                         vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': $localStorage.people }, true)
                                 .then(function (reply) {
-                                    angular.forEach(reply.people, function (serverPerson) {
-                                        angular.forEach($localStorage.people, function (localPerson) {
-                                            if (serverPerson.email == localPerson.email) {
-                                                localPerson.dirty = (serverPerson.presence != localPerson.presence);
-                                            }
+                                    if (reply.status == 'ok') {
+                                        angular.forEach(reply.people, function (serverPerson) {
+                                            angular.forEach($localStorage.people, function (localPerson) {
+                                                if (serverPerson.email == localPerson.email) {
+                                                    localPerson.dirty = (serverPerson.presence != localPerson.presence);
+                                                }
+                                            });
                                         });
-                                    });
+                                    } else {
+                                        console.error('get-events returned with error', reply.message);
+                                    }
                                 })
                                 .catch(function (error) {
                                     console.error('Cannot edit-presence from event', $localStorage.event, error);
