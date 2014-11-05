@@ -8,12 +8,12 @@ BUILD
 ---
     mvn clean package
     cd target
-    vertx pulldeps com.zenika~zpresence~1.0.1
-    vertx fatjar com.zenika~zpresence~1.0.1
+    vertx pulldeps com.zenika~zpresence~1.1.0
+    vertx fatjar com.zenika~zpresence~1.1.0
 
 RUN
 ---
-java -jar zpresence-1.0.1-fat.jar -conf default.conf
+java -jar zpresence-1.1.0-fat.jar -conf default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },

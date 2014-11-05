@@ -54,7 +54,7 @@
         <ul class="list-group">
             <li class="list-group-item"
                 ng-repeat="person in $storage.people|filter:search|orderBy:'lastname'"
-                ng-class="{'list-group-item-info':person.dirty}">
+                ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
                     <span class="label pull-right"
                           ng-class="{'label-default':!person.presence,'label-info':person.presence&&person.dirty,'label-primary':person.presence&&!person.dirty}"
                           ng-click="toggle(person)">

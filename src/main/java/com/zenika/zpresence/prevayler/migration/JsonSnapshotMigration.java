@@ -3,10 +3,15 @@ package com.zenika.zpresence.prevayler.migration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zenika.zpresence.prevayler.model.Zenika;
 import org.prevayler.foundation.serialization.Serializer;
+import sun.awt.CharsetString;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class JsonSnapshotMigration implements Serializer {
     private ObjectMapper mapper;
@@ -23,7 +28,7 @@ public class JsonSnapshotMigration implements Serializer {
     @Override
     public Object readObject(InputStream stream) throws Exception {
         String input;
-        try (Scanner s = new Scanner(stream)) {
+        try (Scanner s = new Scanner(stream, UTF_8.name())) {
             input = s.useDelimiter("\\A").next();
         }
         try {
