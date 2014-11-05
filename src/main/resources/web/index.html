@@ -49,18 +49,25 @@
             <h3 class="panel-title" ng-bind="$storage.event"></h3>
         </div>
         <div class="panel-body">
-            <input type="text" ng-model="search" class="form-control" placeholder="Filtre"/>
+            <div class="row">
+                <div class="col-xs-8">
+                    <input type="text" ng-model="filter.search" class="form-control" placeholder="Filtre"/>
+                </div>
+                <div class="checkbox col-xs-4">
+                    <label>
+                        <input type="checkbox" ng-model="filter.notPresent" ng-true-value="true" ng-false-value="false"> non présent
+                    </label>
+                </div>
+            </div>
         </div>
         <ul class="list-group">
             <li class="list-group-item"
-                ng-repeat="person in $storage.people|filter:search|orderBy:'lastname'"
+                ng-repeat="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'"
                 ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
-                    <span class="label pull-right"
-                          ng-class="{'label-default':!person.presence,'label-info':person.presence&&person.dirty,'label-primary':person.presence&&!person.dirty}"
-                          ng-click="toggle(person)">
-                        <span ng-if="person.presence">présent</span>
-                        <span ng-if="!person.presence">non présent</span>
-                    </span>
+                <button type="button" class="pull-right btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
+                    <span ng-if="person.presence">présent</span>
+                    <span ng-if="!person.presence">non présent</span>
+                </button>
                 <span ng-bind="person.firstname"></span>
                 <span ng-bind="person.lastname"></span>
             </li>
@@ -96,6 +103,14 @@
                 $localStorage.events = $localStorage.events || [];
                 $localStorage.people = $localStorage.people || [];
                 $rootScope.eventbus = false;
+                $rootScope.filter = {};
+
+                $rootScope.notPresentFilter = function (person) {
+                    if ($rootScope.filter.notPresent) {
+                        return !person.presence;
+                    }
+                    return true;
+                };
 
                 $rootScope.$on('vertx-eventbus.system.connected', function () {
                     $rootScope.eventbus = true;
