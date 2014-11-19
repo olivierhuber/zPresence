@@ -8,10 +8,10 @@ BUILD & RUN
 ---
     mvn clean package
     cd target
-    vertx pulldeps com.zenika~zpresence~1.4.0
-    vertx fatjar com.zenika~zpresence~1.4.0
+    vertx pulldeps com.zenika~zpresence~2.0.0
+    vertx fatjar com.zenika~zpresence~2.0.0
 
-    java -jar zpresence-1.4.0-fat.jar -conf ../src/main/resources/default.conf
+    java -jar zpresence-2.0.0-fat.jar -conf ../src/main/resources/default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
@@ -69,6 +69,38 @@ Each error reply will return
 
     { status: "error", message: <string> }
 
+### add-event
+
+    {
+        action: "add-event",
+        event: <string>
+    } 
+    
+success reply
+ 
+    {
+        status: "ok",
+        events: [
+            <string>
+        ]
+    }
+
+### delete-event
+
+    {
+        action: "delete-event",
+        event: <string>
+    } 
+    
+success reply
+ 
+    {
+        status: "ok",
+        events: [
+            <string>
+        ]
+    }
+
 ### get-events
 
     {
@@ -97,10 +129,10 @@ success reply
         status: "ok",
         people: [
             {
-                    email: <string>,
                     firstname: <string>,
                     lastname: <string>,
-                    presence: <bool>
+                    presence: <bool>,
+                    attributes: [<string>]
             }
         ]
     }
@@ -112,7 +144,8 @@ success reply
         event: <string>,
         people: [
             {
-                    email: <string>,
+                    firstname: <string>,
+                    lastname: <string>,
                     presence: <bool>
             }
         ]
@@ -124,10 +157,38 @@ success reply
         status: "ok",
         people: [
             {
-                    email: <string>,
                     firstname: <string>,
                     lastname: <string>,
-                    presence: <bool>
+                    presence: <bool>,
+                    attributes: [<string>]
+            }
+        ]
+    }
+    
+### edit-people
+
+    {
+        action: "edit-people",
+        event: <string>,
+        people: [
+            {
+                    firstname: <string>,
+                    lastname: <string>,
+                    attributes: [<string>]
+            }
+        ]
+    }     
+    
+success reply
+    
+    {
+        status: "ok",
+        people: [
+            {
+                    firstname: <string>,
+                    lastname: <string>,
+                    presence: <bool>,
+                    attributes: [<string>]
             }
         ]
     }

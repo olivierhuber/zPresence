@@ -1,9 +1,7 @@
 package com.zenika.zpresence.prevayler;
 
 import com.zenika.zpresence.ZenPresence;
-import com.zenika.zpresence.prevayler.command.EditPresence;
-import com.zenika.zpresence.prevayler.command.GetEvents;
-import com.zenika.zpresence.prevayler.command.GetPeople;
+import com.zenika.zpresence.prevayler.command.*;
 import com.zenika.zpresence.prevayler.migration.JsonSnapshotMigration;
 import com.zenika.zpresence.prevayler.model.Person;
 import com.zenika.zpresence.prevayler.model.Zenika;
@@ -77,6 +75,14 @@ public class PrevaylerVerticle extends ZenPresence {
 
         eb.registerHandler("prevayler-store", (Message<JsonObject> message) -> {
             switch (message.body().getString("action")) {
+                case "add-event": {
+                    addEvent(message);
+                    break;
+                }
+                case "delete-event": {
+                    deleteEvent(message);
+                    break;
+                }
                 case "get-events": {
                     getEvents(message);
                     break;
@@ -87,6 +93,10 @@ public class PrevaylerVerticle extends ZenPresence {
                 }
                 case "edit-presence": {
                     editPresence(message);
+                    break;
+                }
+                case "edit-people": {
+                    editPeople(message);
                     break;
                 }
                 case "snapshot": {
@@ -125,7 +135,41 @@ public class PrevaylerVerticle extends ZenPresence {
         }
     }
 
-    private void editPresence(Message<JsonObject> message) {
+    void addEvent(Message<JsonObject> message) {
+        try {
+            String event = message.body().getString("event");
+            if (!prevayler.execute(new AddEvent(event))) {
+                throw new Exception("Event(" + event + ") already exist!");
+            }
+
+            snapshot();
+
+            Collection<String> events = prevayler.execute(new GetEvents());
+
+            sendOK(message, array("events", Zenika.toJson(events)));
+        } catch (Exception e) {
+            sendError(message, "addEvent", e);
+        }
+    }
+
+    void deleteEvent(Message<JsonObject> message) {
+        try {
+            String event = message.body().getString("event");
+            if (!prevayler.execute(new DeleteEvent(event))) {
+                throw new Exception("Event(" + event + ") does not exist!");
+            }
+
+            snapshot();
+
+            Collection<String> events = prevayler.execute(new GetEvents());
+
+            sendOK(message, array("events", Zenika.toJson(events)));
+        } catch (Exception e) {
+            sendError(message, "deleteEvent", e);
+        }
+    }
+
+    void editPresence(Message<JsonObject> message) {
         try {
             String event = message.body().getString("event");
             if (prevayler.execute(new GetPeople(event)) == null) {
@@ -133,6 +177,23 @@ public class PrevaylerVerticle extends ZenPresence {
             }
             JsonArray people = message.body().getArray("people");
             prevayler.execute(new EditPresence(event, people));
+
+            snapshot();
+
+            sendOK(message, array("people", Person.toJson(prevayler.execute(new GetPeople(event)))));
+        } catch (Exception e) {
+            sendError(message, "editPresence", e);
+        }
+    }
+
+    void editPeople(Message<JsonObject> message) {
+        try {
+            String event = message.body().getString("event");
+            if (prevayler.execute(new GetPeople(event)) == null) {
+                throw new Exception("Event(" + event + ") does not exist!");
+            }
+            JsonArray people = message.body().getArray("people");
+            prevayler.execute(new EditPeople(event, people));
 
             snapshot();
 

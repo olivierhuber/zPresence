@@ -11,7 +11,7 @@ container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle
     } else {
         console.log("PrevaylerVerticle started!");
 
-        container.deployModule('io.vertx~mod-web-server~2.0.0-final', config.webServer, 1, function(error){
+        container.deployVerticle('com.zenika.zpresence.RestVerticle', config.webServer, 1, function(error){
             if (error) {
                 console.log("WebServer error...");
                 console.log(error);

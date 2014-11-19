@@ -14,39 +14,94 @@
             background-color: #f5f5f5;
             font-weight: bold;
         }
+        .navbar-text {
+            float: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            margin-right: 15px;
+            margin-left: 15px;
+        }
+        .modal-body {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" ng-show="eventbus">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">
-                <span class="glyphicon glyphicon-refresh" ng-show="eventbus && $storage.event" ng-click="sync()"> ZenPresence</span>
-                <span class="glyphicon glyphicon-ban-circle" ng-show="!eventbus || !$storage.event"> ZenPresence</span>
-            </a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="dropdown" ng-show="eventbus">
-                    <a href="" class="dropdown-toggle" data-toggle="dropdown">Événements <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li ng-repeat="event in $storage.events">
-                            <a href="#" ng-click="select(event)" ng-bind="event"></a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-header pull-left">
+        <h4 class="navbar-text">
+            ZenPresence
+        </h4>
+        <a href="#" class="navbar-text navbar-link" ng-click="sync()">
+            <span class="glyphicon glyphicon-refresh" ng-show="eventbus && $storage.event"></span>
+            <span class="glyphicon glyphicon-ban-circle" ng-show="!eventbus || !$storage.event"></span>
+        </a>
+    </div>
+    <div class="navbar-header pull-right">
+        <a href="#" class="navbar-text navbar-link" ng-show="eventbus" data-toggle="modal" data-target="#eventModal"><span class="glyphicon glyphicon-list"></span></a>
     </div>
 </nav>
+<!-- Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">Événements</h4>
+            </div>
+            <div class="modal-body">
+                <div ng-if="!$storage.events.length">
+                    <p class="lead text-muted text-center">Ajouter un événement !</p>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item" ng-class="{'list-group-item-info':event == $storage.event}" ng-repeat="event in $storage.events">
+                        <div class="btn-group btn-group-sm pull-right" ng-if="event == $storage.event">
+                            <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false"><span class="glyphicon glyphicon-cloud-upload"></span></button>
+                            <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
+                        </div>
+                        <h5><a href="#" ng-bind="event" ng-click="select(event)"></a></h5>
+                    </li>
+                </ul>
+                <div class="well well-sm" ng-if="$storage.event && $storage.events.length">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                    L'import requiert un fichier Excel avec le contenu suivant :
+                    <p></p>
+                    <table class="table table-bordered table-condensed">
+                        <tr>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>C ...</th>
+                        </tr>
+                        <tr>
+                            <td>Prénom</td>
+                            <td>Nom</td>
+                            <td>Repris tel quel ...</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form class="input-group" ng-submit="add(new.event)">
+                    <input type="text" class="form-control" ng-model="new.event" placeholder="Nouvel évènement">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span></button>
+                    </span>
+                </form>
+                <p></p>
+                <form class="input-group" ng-submit="delete(delete.event)">
+                    <input type="text" class="form-control" ng-model="delete.event" placeholder="Supprimer évènement">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span></button>
+                    </span>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container-fluid">
     <div ng-if="!$storage.event">
-        <p class="lead text-muted text-center">Selectionnez un événement !</p>
+        <p class="lead text-muted text-center">Selectionnez ou créer un événement !</p>
     </div>
     <div class="panel panel-default" ng-if="$storage.event">
         <div class="panel-heading">
@@ -65,16 +120,21 @@
             </div>
         </div>
         <ul class="list-group">
-            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'|firstLetter" ng-if="person.firstLetter"><span ng-bind="person.firstLetter"></span></li>
+            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'|firstLetter" ng-if="person.firstLetter">
+                <span ng-bind="person.firstLetter"></span></li>
             <li class="list-group-item"
                 ng-repeat-end
                 ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
+                <button type="button" class="btn btn-default btn-xs pull-right" ng-click="person.details=!person.details" ng-if="person.attributes.length">détails</button>
                 <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
                     <span ng-if="person.presence">présent</span>
                     <span ng-if="!person.presence">non présent</span>
                 </button>
                 <span ng-bind="person.firstname"></span>
                 <span ng-bind="person.lastname"></span>
+                <ul class="list-unstyled" ng-show="person.details">
+                    <li ng-repeat="attribute in person.attributes"><span ng-bind="attribute"></span></li>
+                </ul>
             </li>
         </ul>
         <div class="panel-footer">
@@ -92,9 +152,16 @@
 <script src="lib/angular-1.3.1/angular.min.js"></script>
 <script src="lib/angular-vertxbus-0.6.0.js"></script>
 <script src="lib/ngStorage/ngStorage.min.js"></script>
+<script src="lib/angular-file-upload.min.js"></script>
 
 <script>
-    angular.module('zpresence', ['ngStorage', 'knalli.angular-vertxbus'])
+    $(function () {
+        $('[data-toggle="popover"]').popover();
+    })
+</script>
+
+<script>
+    angular.module('zpresence', ['ngStorage', 'knalli.angular-vertxbus', 'angularFileUpload']) // Or the other one!? https://github.com/nervgh/angular-file-upload/tree/master/src
             .filter('presenceCount', function () {
                 return function (people) {
                     return _.reduce(people, function (count, p) {
@@ -105,13 +172,13 @@
             .filter('firstLetter', function () {
                 return function (people) {
                     var firstLetter;
-                    return _.each(people, function(person){
+                    return _.each(people, function (person) {
                         person.firstLetter = (person.lastname[0] != firstLetter) ? person.lastname[0] : null;
                         firstLetter = person.lastname[0];
                     });
                 }
             })
-            .run(function ($rootScope, $localStorage, vertxEventBusService) {
+            .run(function ($rootScope, $localStorage, vertxEventBusService, $upload) {
                 $rootScope.$storage = $localStorage;
                 $localStorage.event = $localStorage.event || null;
                 $localStorage.events = $localStorage.events || [];
@@ -134,7 +201,12 @@
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.events = reply.events;
-                                    $rootScope.sync();
+                                    if (_.contains($localStorage.events, $localStorage.event)) {
+                                        $rootScope.sync();
+                                    } else {
+                                        $localStorage.event = null;
+                                        $localStorage.people = [];
+                                    }
                                 } else {
                                     console.error('get-events returned with error', reply.message);
                                 }
@@ -171,6 +243,41 @@
                             });
                 };
 
+                $rootScope.add = function (event) {
+                    vertxEventBusService.send('prevayler-store', { action: 'add-event', 'event': event.replace('#', '_').replace('?', '!') }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.events = reply.events;
+                                    $rootScope.sync();
+                                    delete $rootScope.new.event;
+                                } else {
+                                    console.error('add-event returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot add-event from event', event, error);
+                            });
+                };
+
+                $rootScope.delete = function (event) {
+                    vertxEventBusService.send('prevayler-store', { action: 'delete-event', 'event': event }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.events = reply.events;
+                                    if (event == $localStorage.event) { //TODO test that
+                                        $localStorage.event = null;
+                                        $localStorage.people = [];
+                                    }
+                                    delete $rootScope.delete.event; //BAD
+                                } else {
+                                    console.error('delete-event returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot delete-event', event, error);
+                            });
+                };
+
                 $rootScope.sync = function () {
                     if ($localStorage.event) {
                         vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': $localStorage.people }, true)
@@ -178,7 +285,7 @@
                                     if (reply.status == 'ok') {
                                         angular.forEach(reply.people, function (serverPerson) {
                                             angular.forEach($localStorage.people, function (localPerson) {
-                                                if (serverPerson.email == localPerson.email) {
+                                                if (serverPerson.firstname == localPerson.firstname && serverPerson.lastname == localPerson.lastname) {
                                                     localPerson.dirty = (serverPerson.presence != localPerson.presence);
                                                 }
                                             });
@@ -191,6 +298,17 @@
                                     console.error('Cannot edit-presence from event', $localStorage.event, error);
                                 });
                     }
+                };
+
+                $rootScope.onFileSelect = function (files) {
+                    $upload.upload({
+                        url: 'upload' + '/' + $localStorage.event,
+                        file: files[0]
+                    }).success(function (data, status, headers, config) {
+                        $localStorage.people = data;
+                    }).error(function (error) {
+                        console.log("Upload error!", error);
+                    });
                 };
             });
 </script>

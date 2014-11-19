@@ -8,10 +8,10 @@ import java.util.Collection;
 
 public class Person implements Serializable {
     public static final long serialVersionUID = 1L;
-    public String email;
     public String firstname;
     public String lastname;
     public Boolean presence = false;
+    public Collection<String> attributes;
 
     public static Collection<Person> fromJson(JsonArray peopleAsJson) {
         try {

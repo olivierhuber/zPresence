@@ -19,10 +19,11 @@ public class EditPresence implements Transaction<Zenika> {
     @Override
     public void executeOn(Zenika zenika, Date executionTime) {
         people.forEach(updatePerson -> zenika.events.get(event).forEach(person -> {
-            JsonObject updatePersonAsJson = (JsonObject) updatePerson;
-            if (person.email.equals(updatePersonAsJson.getString("email"))) {
-                person.presence = updatePersonAsJson.getBoolean("presence");
-            }
-        }));
+                    JsonObject updatePersonAsJson = (JsonObject) updatePerson;
+                    if (person.firstname.equals(updatePersonAsJson.getString("firstname")) && person.lastname.equals(updatePersonAsJson.getString("lastname"))) {
+                        person.presence = updatePersonAsJson.getBoolean("presence");
+                    }
+                })
+        );
     }
 }
