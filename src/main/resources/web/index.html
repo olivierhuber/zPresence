@@ -10,10 +10,12 @@
         body {
             padding-top: 70px;
         }
+
         .first-letter {
             background-color: #f5f5f5;
             font-weight: bold;
         }
+
         .navbar-text {
             float: left;
             margin-top: 15px;
@@ -21,6 +23,7 @@
             margin-right: 15px;
             margin-left: 15px;
         }
+
         .modal-body {
             margin-bottom: 0;
             padding-bottom: 0;
@@ -57,7 +60,8 @@
                 <ul class="list-group">
                     <li class="list-group-item" ng-class="{'list-group-item-info':event == $storage.event}" ng-repeat="event in $storage.events">
                         <div class="btn-group btn-group-sm pull-right" ng-if="event == $storage.event">
-                            <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false"><span class="glyphicon glyphicon-cloud-upload"></span></button>
+                            <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false">
+                                <span class="glyphicon glyphicon-cloud-upload"></span></button>
                             <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
                         </div>
                         <h5><a href="#" ng-bind="event" ng-click="select(event)"></a></h5>
@@ -85,14 +89,17 @@
                 <form class="input-group" ng-submit="add(new.event)">
                     <input type="text" class="form-control" ng-model="new.event" placeholder="Nouvel évènement">
                     <span class="input-group-btn">
-                        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span></button>
+                        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span>
+                        </button>
                     </span>
                 </form>
                 <p></p>
+
                 <form class="input-group" ng-submit="delete(delete.event)">
                     <input type="text" class="form-control" ng-model="delete.event" placeholder="Supprimer évènement">
                     <span class="input-group-btn">
-                        <button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span></button>
+                        <button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span>
+                        </button>
                     </span>
                 </form>
             </div>
@@ -100,9 +107,6 @@
     </div>
 </div>
 <div class="container-fluid">
-    <div ng-if="!$storage.event">
-        <p class="lead text-muted text-center">Selectionnez ou créer un événement !</p>
-    </div>
     <div class="panel panel-default" ng-if="$storage.event">
         <div class="panel-heading">
             <h3 class="panel-title" ng-bind="$storage.event"></h3>
@@ -142,6 +146,9 @@
             sur <span class="badge" ng-bind="$storage.people.length">0</span>
         </div>
     </div>
+    <div ng-if="!$storage.event">
+        <p class="lead text-muted text-center">Selectionnez ou créer un événement !</p>
+    </div>
 </div>
 
 <script src="lib/jquery-2.1.1.min.js"></script>
@@ -153,12 +160,6 @@
 <script src="lib/angular-vertxbus-0.6.0.js"></script>
 <script src="lib/ngStorage/ngStorage.min.js"></script>
 <script src="lib/angular-file-upload.min.js"></script>
-
-<script>
-    $(function () {
-        $('[data-toggle="popover"]').popover();
-    })
-</script>
 
 <script>
     angular.module('zpresence', ['ngStorage', 'knalli.angular-vertxbus', 'angularFileUpload']) // Or the other one!? https://github.com/nervgh/angular-file-upload/tree/master/src
@@ -304,8 +305,8 @@
                     $upload.upload({
                         url: 'upload' + '/' + $localStorage.event,
                         file: files[0]
-                    }).success(function (data, status, headers, config) {
-                        $localStorage.people = data;
+                    }).success(function (people, status, headers, config) {
+                        $localStorage.people = people;
                     }).error(function (error) {
                         console.log("Upload error!", error);
                     });

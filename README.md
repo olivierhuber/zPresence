@@ -8,10 +8,10 @@ BUILD & RUN
 ---
     mvn clean package
     cd target
-    vertx pulldeps com.zenika~zpresence~2.0.0
-    vertx fatjar com.zenika~zpresence~2.0.0
+    vertx pulldeps com.zenika~zpresence~2.0.1
+    vertx fatjar com.zenika~zpresence~2.0.1
 
-    java -jar zpresence-2.0.0-fat.jar -conf ../src/main/resources/default.conf
+    java -jar zpresence-2.0.1-fat.jar -conf ../src/main/resources/default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
@@ -24,23 +24,13 @@ BUILD & RUN
         }
     }
 
-0000000000000000001.jsonSnapshot
----
-    {
-      "events" : {
-        "Titre événement" : [ {
-          "email" : "olivierhuber@free.fr",
-          "firstname" : "Olivier",
-          "lastname" : "Huber"
-        } ]
-      }
-    }
-
-Edit the json data
+Edit the json data directly
 ---
 - Stop the server (kill the java process)
 - Then you can edit the file .jsonSnapshot
 - Then restart the server and check for json parsing error
+
+But the prefered way is to use the admin interface to upload an Excel file
 
 ## Publishes
 

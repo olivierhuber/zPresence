@@ -5,13 +5,14 @@ import org.vertx.java.core.json.JsonObject;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Set;
 
 public class Person implements Serializable {
     public static final long serialVersionUID = 1L;
     public String firstname;
     public String lastname;
     public Boolean presence = false;
-    public Collection<String> attributes;
+    public Set<String> attributes;
 
     public static Collection<Person> fromJson(JsonArray peopleAsJson) {
         try {
