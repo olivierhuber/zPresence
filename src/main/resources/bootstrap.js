@@ -23,17 +23,23 @@ if (!config.prevayler) {
     }
 }
 
-container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle', config.prevayler, 1, function (error) {
-    if (error) {
+container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle', config.prevayler, 1, function (prevaylerError, prevaylerDeployID) {
+    if (prevaylerError) {
         console.log("PrevaylerVerticle error...");
-        console.log(error);
+        console.log(prevaylerError);
     } else {
         console.log("PrevaylerVerticle started!");
 
-        container.deployVerticle('com.zenika.zpresence.RestVerticle', config.webServer, 1, function (error) {
-            if (error) {
+        container.deployVerticle('com.zenika.zpresence.RestVerticle', config.webServer, 1, function (webError) {
+            if (webError) {
                 console.log("WebServer error...");
-                console.log(error);
+                console.log(webError);
+                console.log("Shutting down PrevaylerVerticle...");
+                container.undeployVerticle(prevaylerDeployID);
+                if (webError.message == "Address already in use") {
+                    console.log("Open default browser on already running instance of ZPresence listening on port " + config.webServer.port);
+                    java.awt.Desktop.getDesktop().browse(java.net.URI.create("http://127.0.0.1:" + config.webServer.port));
+                }
             } else {
                 console.log("WebServer started! Listening on port " + config.webServer.port);
                 console.log("Open default browser!");

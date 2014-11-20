@@ -4,19 +4,31 @@ ISSUES
 ===
 Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement... a vérifier si c'est toujours le cas !
 
+IDEAS
+=====
+- Base64 du nom de l'évènement dans l'URL serait un plus ;) tant pis pour la lisibilité de l'url
+
+
 BUILD & RUN
 ---
     mvn clean package
     cd target
-    vertx pulldeps com.zenika~zpresence~2.0.2
-    vertx fatjar com.zenika~zpresence~2.0.2
+    vertx pulldeps com.zenika~zpresence~2.0.3
+    vertx fatjar com.zenika~zpresence~2.0.3
 
-    java -jar zpresence-2.0.2-fat.jar -conf ../src/main/resources/default.conf
+run with
+
+    java -jar zpresence-<version>.jar
+
+or
+
+    java -jar zpresence-<version>.jar -conf ../src/main/resources/default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
         "webServer" : {
             "port": 8080,
+            "route_matcher": true,
             "bridge": true,
             "inbound_permitted": [{}],
             "outbound_permitted": [{}]
