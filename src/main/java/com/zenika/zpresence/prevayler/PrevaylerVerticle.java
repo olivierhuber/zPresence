@@ -53,6 +53,8 @@ public class PrevaylerVerticle extends ZenPresence {
 
         prevalenceFiles.stream()
                 .filter(file -> !necessaryFiles.contains(file))
+                .filter(file -> file.getName().startsWith("0000000000000"))
+                .filter(file -> file.getName().endsWith("journal") || file.getName().endsWith("jsonSnapshot"))
                 .forEach(File::delete);
     }
 

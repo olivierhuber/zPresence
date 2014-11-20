@@ -11,5 +11,5 @@
     "keywords": ["zenika", "prevayler"],
     "homepage": "zpresence.zenika.com",
 
-    "auto-redeploy": true
+    "auto-redeploy": false
 }

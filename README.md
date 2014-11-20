@@ -2,16 +2,16 @@
 
 ISSUES
 ===
-Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement...
+Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement... a vérifier si c'est toujours le cas !
 
 BUILD & RUN
 ---
     mvn clean package
     cd target
-    vertx pulldeps com.zenika~zpresence~2.0.1
-    vertx fatjar com.zenika~zpresence~2.0.1
+    vertx pulldeps com.zenika~zpresence~2.0.2
+    vertx fatjar com.zenika~zpresence~2.0.2
 
-    java -jar zpresence-2.0.1-fat.jar -conf ../src/main/resources/default.conf
+    java -jar zpresence-2.0.2-fat.jar -conf ../src/main/resources/default.conf
 
     {
         "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
