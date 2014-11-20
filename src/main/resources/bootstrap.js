@@ -6,10 +6,12 @@ var config = container.config;
 
 if (!config.prevayler) {
     console.warn("No config provided! Fallback on default conf");
+    console.log("Detecting user.home=" + java.lang.System.getProperty("user.home"));
+    prevalenceBase = java.lang.System.getProperty("user.home") + "/.zpresence";
     config = {
-        "prevayler": { "prevalenceBase": ".zpresence" },
+        "prevayler": { "prevalenceBase": prevalenceBase },
         "webServer": {
-            "port": 8080,
+            "port": 8888,
             "route_matcher": true,
             "bridge": true,
             "inbound_permitted": [
@@ -18,7 +20,6 @@ if (!config.prevayler) {
             "outbound_permitted": [
                 {}
             ]
-
         }
     }
 }
