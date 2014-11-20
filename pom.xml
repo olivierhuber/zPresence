@@ -6,7 +6,7 @@
     <groupId>com.zenika</groupId>
     <artifactId>zpresence</artifactId>
     <packaging>jar</packaging>
-    <version>2.0.3</version>
+    <version>2.0.4</version>
     <name>Project - zPresence</name>
     <url>http://maven.apache.org</url>
 
@@ -22,11 +22,11 @@
         <!-- Set pullInDeps to true if you want any modules specified in the 'includes' and 'deploys' fields
         in your mod.json to be automatically pulled in during packaging and added inside your module. Doing this means your
         module won't download and install those dependencies at run-time when they're first requested. -->
-        <vertx.pullInDeps>false</vertx.pullInDeps>
+        <vertx.pullInDeps>true</vertx.pullInDeps>
 
         <!-- Set createFatJar to true if you want to create a fat executable jar which contains the Vert.x binaries
         along with the module so it can be run with java -jar <jarname> -->
-        <vertx.createFatJar>false</vertx.createFatJar>
+        <vertx.createFatJar>true</vertx.createFatJar>
 
         <!--Vertx module name-->
         <module.name>${project.groupId}~${project.artifactId}~${project.version}</module.name>

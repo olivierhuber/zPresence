@@ -134,7 +134,7 @@ public class RestVerticle extends WebServerBase {
                 return Boolean.toString(cell.getBooleanCellValue());
             } catch (Exception e3) {
                 try {
-                    return cell.getStringCellValue();
+                    return cell.getStringCellValue().trim().replaceAll("\\u00A0", "");
                 } catch (Exception e4) {
                     logger.warn("Cannot read cell [" + cell.getRowIndex() + "," + cell.getColumnIndex() + "]");
                     return "";
