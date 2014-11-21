@@ -36,6 +36,7 @@ container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle
                     console.log("Open default browser on already running instance of ZPresence listening on port " + config.webServer.port);
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create("http://127.0.0.1:" + config.webServer.port));
                 }
+                container.exit();
             } else {
                 console.log("WebServer started! Listening on port " + config.webServer.port);
                 console.log("Open default browser!");

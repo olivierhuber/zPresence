@@ -95,6 +95,8 @@ public class RestVerticle extends WebServerBase {
             });
         });
 
+        matcher.get("/exit", ignore -> container.exit());
+
         matcher.noMatch(staticHandler());
         return matcher;
     }

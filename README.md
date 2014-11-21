@@ -2,7 +2,6 @@
 
 ISSUES
 ===
-- Seuleument sous windows si on met un "é" dans le titre de l'événement il ne s'affiche pas correctement... a vérifier si c'est toujours le cas !
 - Le fait que l'on export en utilisant le nom de l'event dans l'URL a ses limitation pour nommer les evenements ...
 
 IDEAS
