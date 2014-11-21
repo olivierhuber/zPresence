@@ -103,7 +103,7 @@
                         <div class="btn-group btn-group-sm pull-right" ng-if="event == $storage.event">
                             <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false">
                                 <span class="glyphicon glyphicon-cloud-upload"></span></button>
-                            <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
+                            <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
                         </div>
                         <h5><a href="#" ng-bind="event" ng-click="select(event)"></a></h5>
                     </li>
