@@ -33,9 +33,10 @@
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-header pull-left">
-        <h4 class="navbar-text">
+        <a href="#" class="navbar-brand" data-toggle="modal" data-target="#infoModal">
+            <span class="glyphicon glyphicon-info-sign small"></span>
             ZenPresence
-        </h4>
+        </a>
         <a href="#" class="navbar-text navbar-link" ng-click="sync()">
             <span class="glyphicon glyphicon-refresh" ng-show="eventbus && $storage.event"></span>
             <span class="glyphicon glyphicon-ban-circle" ng-show="!eventbus || !$storage.event"></span>
@@ -45,7 +46,36 @@
         <a href="#" class="navbar-text navbar-link" ng-show="eventbus" data-toggle="modal" data-target="#eventModal"><span class="glyphicon glyphicon-list"></span></a>
     </div>
 </nav>
-<!-- Modal -->
+<!-- Info Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">FAQ <span class="glyphicon glyphicon-question-sign"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <h4 class="list-group-item-heading">Import de données</h4>
+
+                        <p class="list-group-item-text">Vous pouvez soit utiliser l'import par fichier Excel</p>
+
+                        <p class="list-group-item-text">Soit (en ayant arrêté le serveur) éditer directement le fichier <code>.jsonSnapshot</code> présent dans le répertoire <code>.zpresence</code> de votre espace utilisateur</p>
+                    </div>
+                    <div class="list-group-item">
+                        <h4 class="list-group-item-heading">Un seul client (mobile/tablette/...) est prévu de se connecter à la fois</h4>
+
+                        <p class="list-group-item-text">Cela vient du fait que l'application est prévu de fonctionner en mode déconnecté</p>
+
+                        <p class="list-group-item-text">En effet, comment départager 2 clients déconnectés se connectant à nouveau ?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Event Modal -->
 <div class="modal fade" id="eventModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -69,18 +99,13 @@
                 </ul>
                 <div class="well well-sm" ng-if="$storage.event && $storage.events.length">
                     <span class="glyphicon glyphicon-exclamation-sign"></span>
-                    L'import requiert un fichier Excel avec le contenu suivant :
+                    L'import requiert un fichier Excel <strong>sans en-têtes</strong> avec au minimum 2&nbsp;colonnes&nbsp;[Prénom,&nbsp;Nom]
                     <p></p>
                     <table class="table table-bordered table-condensed">
                         <tr>
-                            <th>A</th>
-                            <th>B</th>
-                            <th>C ...</th>
-                        </tr>
-                        <tr>
-                            <td>Prénom</td>
-                            <td>Nom</td>
-                            <td>Repris tel quel ...</td>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Autres colonnes reprisent tel quel ...</th>
                         </tr>
                     </table>
                 </div>

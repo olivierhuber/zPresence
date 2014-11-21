@@ -6,6 +6,7 @@ ISSUES
 
 IDEAS
 =====
+- Simplifier a donf le fichier de conf ...... route matcher par exemple est obligatoire ;( etc
 - Base64 du nom de l'évènement dans l'URL serait un plus ;) tant pis pour la lisibilité de l'url
 
 BUILD
@@ -27,8 +28,7 @@ or
             "route_matcher": true,
             "bridge": true,
             "inbound_permitted": [{}],
-            "outbound_permitted": [{}]
-    
+            "outbound_permitted": [{}]    
         }
     }
 

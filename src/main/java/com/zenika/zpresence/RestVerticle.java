@@ -81,7 +81,7 @@ public class RestVerticle extends WebServerBase {
                         });
                         wb.write(out);
                         request.response().putHeader(CONTENT_TYPE, MimeMapping.getMimeTypeForExtension("xls"));
-                        request.response().putHeader("Content-Disposition", "attachment; filename='" + event + ".xls'");
+                        request.response().putHeader("Content-Disposition", "attachment; filename=" + event + ".xls");
                         request.response().end(new Buffer(out.toByteArray()));
                     } catch (Exception e) {
                         logger.error("error", e);
