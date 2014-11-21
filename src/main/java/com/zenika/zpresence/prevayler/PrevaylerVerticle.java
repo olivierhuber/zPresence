@@ -63,7 +63,9 @@ public class PrevaylerVerticle extends ZenPresence {
         super.start();
 
         prevalenceBase = config.getString("prevalenceBase");
-        vertx.fileSystem().mkdirSync(prevalenceBase, true);
+        if (!vertx.fileSystem().existsSync(prevalenceBase)) {
+            vertx.fileSystem().mkdirSync(prevalenceBase, true);
+        }
         try {
             PrevaylerFactory<Zenika> factory = new PrevaylerFactory<>();
             factory.configurePrevalentSystem(new Zenika());

@@ -6,7 +6,6 @@ ISSUES
 
 IDEAS
 =====
-- Simplifier a donf le fichier de conf ...... route matcher par exemple est obligatoire ;( etc
 - Base64 du nom de l'évènement dans l'URL serait un plus ;) tant pis pour la lisibilité de l'url
 
 BUILD
@@ -19,18 +18,9 @@ RUN
 
 or
 
-    java -jar zpresence-<version>-fat.jar -conf ../src/main/resources/default.conf
+    java -jar zpresence-<version>-fat.jar -conf zpresence.json
 
-    {
-        "prevayler" : { "prevalenceBase": "/tmp/.zpresence" },
-        "webServer" : {
-            "port": 8080,
-            "route_matcher": true,
-            "bridge": true,
-            "inbound_permitted": [{}],
-            "outbound_permitted": [{}]    
-        }
-    }
+    { "data" : "/Users/olivier/.zpresence", "http" : 8080 }
 
 Edit the json data directly
 ---

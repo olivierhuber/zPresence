@@ -2,34 +2,29 @@
 var console = require('vertx/console');
 var container = require('vertx/container');
 
-var config = container.config;
+console.log('Config provided ' + JSON.stringify(container.config));
 
-if (!config.prevayler) {
-    console.warn("No config provided! Fallback on default conf");
-    console.log("Detecting user.home=" + java.lang.System.getProperty("user.home"));
-    prevalenceBase = java.lang.System.getProperty("user.home") + "/.zpresence";
-    config = {
-        "prevayler": { "prevalenceBase": prevalenceBase },
-        "webServer": {
-            "port": 8888,
-            "route_matcher": true,
-            "bridge": true,
-            "inbound_permitted": [
-                {}
-            ],
-            "outbound_permitted": [
-                {}
-            ]
-        }
+var config = {
+    "prevayler": { "prevalenceBase": container.config.data || java.lang.System.getProperty("user.home") + "/.zpresence" },
+    "webServer": {
+        "port": container.config.http || 8080,
+        "route_matcher": true,
+        "bridge": true,
+        "inbound_permitted": [
+            {}
+        ],
+        "outbound_permitted": [
+            {}
+        ]
     }
-}
+};
 
 container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle', config.prevayler, 1, function (prevaylerError, prevaylerDeployID) {
     if (prevaylerError) {
         console.log("PrevaylerVerticle error...");
         console.log(prevaylerError);
     } else {
-        console.log("PrevaylerVerticle started!");
+        console.log("PrevaylerVerticle started! Data directory is " + config.prevayler.prevalenceBase);
 
         container.deployVerticle('com.zenika.zpresence.RestVerticle', config.webServer, 1, function (webError) {
             if (webError) {
