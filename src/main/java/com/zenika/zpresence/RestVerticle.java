@@ -55,7 +55,7 @@ public class RestVerticle extends WebServerBase {
         });
 
         matcher.get("/export/:event", request -> {
-            final String event = QueryStringDecoder.decodeComponent(request.params().get("event"));
+            final String event = QueryStringDecoder.decodeComponent(request.params().get("event").replace(".xls", ""));
 
             eb.send("prevayler-store", new JsonObject().putString("action", "get-people").putString("event", event), (Message<JsonObject> message) -> {
                 if ("ok".equals(message.body().getString("status"))) {
@@ -81,7 +81,8 @@ public class RestVerticle extends WebServerBase {
                         });
                         wb.write(out);
                         request.response().putHeader(CONTENT_TYPE, MimeMapping.getMimeTypeForExtension("xls"));
-                        request.response().putHeader("Content-Disposition", "attachment; filename=" + event + ".xls");
+//                        String fileName = request.headers().get("user-agent").contains("MSIE") ? URLEncoder.encode(event, "utf-8") : event /* encode differently ? */;
+//                        request.response().putHeader("Content-disposition", "attachment; filename=\"" + fileName + ".xls\"");
                         request.response().end(new Buffer(out.toByteArray()));
                     } catch (Exception e) {
                         logger.error("error", e);
