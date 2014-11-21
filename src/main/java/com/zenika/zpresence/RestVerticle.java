@@ -106,7 +106,7 @@ public class RestVerticle extends WebServerBase {
             Sheet firstSheet = wb.getSheetAt(0);
             logger.info("Reading " + firstSheet.getLastRowNum() + 1 + " rows from first sheet");
             firstSheet.forEach(row -> {
-                logger.info("Parse row #" + row.getRowNum());
+                logger.debug("Parse row #" + row.getRowNum());
                 Iterator<Cell> cellIterator = row.cellIterator();
                 JsonObject person = new JsonObject();
                 person.putString("firstname", cellIterator.hasNext() ? string(cellIterator.next()) : null);
