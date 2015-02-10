@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html ng-app="zpresence">
+<head lang="en">
+    <title>zPresence</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="lib/bootstrap-3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 70px;
+        }
+
+        .first-letter {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        .navbar-text {
+            float: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            margin-right: 15px;
+            margin-left: 15px;
+        }
+
+        .modal-body {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-header pull-left">
+        <a href="#" class="navbar-brand" data-toggle="modal" data-target="#infoModal">
+            <span class="glyphicon glyphicon-info-sign small"></span>
+            ZenPresence
+        </a>
+        <a href="#" class="navbar-text navbar-link" ng-click="sync()">
+            <span class="glyphicon glyphicon-refresh" ng-show="eventbus && $storage.event"></span>
+            <span class="glyphicon glyphicon-ban-circle" ng-show="!eventbus || !$storage.event"></span>
+        </a>
+    </div>
+    <div class="navbar-header pull-right">
+        <a href="#" class="navbar-text navbar-link" ng-show="eventbus" data-toggle="modal" data-target="#eventModal"><span class="glyphicon glyphicon-list"></span></a>
+    </div>
+</nav>
+<!-- Info Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">FAQ <span class="glyphicon glyphicon-question-sign"></span></h4>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <h4 class="list-group-item-heading">Import de données</h4>
+
+                        <p class="list-group-item-text">Vous pouvez soit utiliser l'import par fichier Excel</p>
+
+                        <p class="list-group-item-text">Soit (en ayant arrêté le serveur) éditer directement le fichier
+                            <code>.jsonSnapshot</code> présent dans le répertoire
+                            <code>.zpresence</code> de votre espace utilisateur</p>
+                    </div>
+                    <div class="list-group-item">
+                        <h4 class="list-group-item-heading">Ca bug lorsque j'utilise des caractères bizarre dans le nom de l'évènement !</h4>
+
+                        <p class="list-group-item-text">Cela vient du fait que j'ai voulut faire simple et utiliser le nom de l'event directement sans passer par un code ou un ID</p>
+
+                        <p class="list-group-item-text">Le nom de l'event est passé en paramètre de l'URL pour l'upload et download ...</p>
+
+                        <p class="list-group-item-text">Donc, oui il faut éviter certain caractères pour le moment</p>
+                    </div>
+                    <div class="list-group-item">
+                        <h4 class="list-group-item-heading">J'ai lancé l'appli en double-cliquant dessus ...</h4>
+
+                        <p class="list-group-item-text">... et j'aimerais bien arrêter le serveur proprement sans chercher et tuer le process javaw ou java ;)</p>
+
+                        <p class="list-group-item-text text-danger"><a href="/exit" class="btn btn-danger btn-xs">Ok, clique <span class="glyphicon glyphicon-off"></span></a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">Événements</h4>
+            </div>
+            <div class="modal-body">
+                <div ng-if="!$storage.events.length">
+                    <p class="lead text-muted text-center">Ajouter un événement !</p>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item" ng-class="{'list-group-item-info':event == $storage.event}" ng-repeat="event in $storage.events">
+                        <div class="btn-group btn-group-sm pull-right" ng-if="event == $storage.event">
+                            <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false">
+                                <span class="glyphicon glyphicon-cloud-upload"></span></button>
+                            <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}.xls" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
+                        </div>
+                        <h5><a href="#" ng-bind="event" ng-click="select(event)"></a></h5>
+                    </li>
+                </ul>
+                <div class="well well-sm" ng-if="$storage.event && $storage.events.length">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                    L'import requiert un fichier Excel <strong>sans en-têtes</strong> avec au minimum 2&nbsp;colonnes&nbsp;[Prénom,&nbsp;Nom]
+                    <p></p>
+                    <table class="table table-bordered table-condensed">
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Autres colonnes reprisent tel quel ...</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form class="input-group" ng-submit="add(new.event)">
+                    <input type="text" class="form-control" ng-model="new.event" placeholder="Nouvel évènement">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                    </span>
+                </form>
+                <p></p>
+
+                <form class="input-group" ng-submit="delete(delete.event)">
+                    <input type="text" class="form-control" ng-model="delete.event" placeholder="Supprimer évènement">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span>
+                        </button>
+                    </span>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="panel panel-default" ng-if="$storage.event">
+        <div class="panel-heading">
+            <h3 class="panel-title" ng-bind="$storage.event"></h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-8">
+                    <input type="text" ng-model="filter.search" class="form-control" placeholder="Filtre"/>
+                </div>
+                <div class="checkbox col-xs-4">
+                    <label>
+                        <input type="checkbox" ng-model="filter.notPresent"> non présent
+                    </label>
+                </div>
+            </div>
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|firstLetter" ng-if="person.firstLetter">
+                <span ng-bind="person.firstLetter"></span></li>
+            <li class="list-group-item"
+                ng-repeat-end
+                ng-class="{'list-group-item-info':person.remote!=person.presence,'text-muted':person.presence}">
+                <button type="button" class="btn btn-default btn-xs pull-right" ng-click="person.details=!person.details" ng-if="person.attributes.length">détails</button>
+                <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&!person.remote,'btn-primary':person.presence&&person.remote}" ng-click="toggle(person)">
+                    <span ng-if="person.presence">présent</span>
+                    <span ng-if="!person.presence">non présent</span>
+                </button>
+                <span ng-bind="person.firstname"></span>
+                <span ng-bind="person.lastname"></span>
+                <ul class="list-unstyled" ng-show="person.details">
+                    <li ng-repeat="attribute in person.attributes"><span ng-bind="attribute"></span></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="panel-footer">
+            <span class="badge" ng-bind="$storage.people|presenceCount">0</span> présent(s)
+            sur <span class="badge" ng-bind="$storage.people.length">0</span>
+        </div>
+    </div>
+    <div ng-if="!$storage.event">
+        <p class="lead text-muted text-center">Selectionnez ou créer un événement !</p>
+    </div>
+</div>
+
+<script src="lib/jquery-2.1.1.min.js"></script>
+<script src="lib/bootstrap-3.1.1/js/bootstrap.min.js"></script>
+<script src="lib/lodash.min.js"></script>
+<script src="lib/sockjs-min-0.3.4.js"></script>
+<script src="lib/vertxbus-2.1.js"></script>
+<script src="lib/angular-1.3.1/angular.min.js"></script>
+<script src="lib/angular-vertxbus-0.6.0.js"></script>
+<script src="lib/ngStorage/ngStorage.min.js"></script>
+<script src="lib/angular-file-upload.min.js"></script>
+
+<script>
+    angular.module('zpresence', ['ngStorage', 'knalli.angular-vertxbus', 'angularFileUpload']) // Or the other one!? https://github.com/nervgh/angular-file-upload/tree/master/src
+            .filter('presenceCount', function () {
+                return function (people) {
+                    return _.reduce(people, function (count, p) {
+                        return p.presence ? count + 1 : count;
+                    }, 0);
+                }
+            })
+            .filter('firstLetter', function () {
+                return function (people) {
+                    var sortedPeople = _.sortBy(people, function(p){return p.lastname.toUpperCase()});
+                    var firstLetter;
+                    angular.forEach(sortedPeople, function (person) {
+                        person.firstLetter = (person.lastname[0].toUpperCase() != firstLetter) ? person.lastname[0].toUpperCase() : null;
+                        firstLetter = person.lastname[0].toUpperCase();
+                    });
+                    return sortedPeople;
+                }
+            })
+            .run(function ($rootScope, $localStorage, vertxEventBusService, $upload) {
+                $rootScope.$storage = $localStorage;
+                $localStorage.event = $localStorage.event || null;
+                $localStorage.events = $localStorage.events || [];
+                $localStorage.people = $localStorage.people || [];
+                $rootScope.eventbus = false;
+                $rootScope.filter = {};
+
+                var storePeople = function(people){
+                    angular.forEach(people, function(person){ person.remote = person.presence; });
+                    $localStorage.people = people;
+                };
+
+                $rootScope.notPresentFilter = function (person) {
+                    if ($rootScope.filter.notPresent) {
+                        return !person.presence;
+                    }
+                    return true;
+                };
+
+                $rootScope.$on('vertx-eventbus.system.connected', function () {
+                    $rootScope.eventbus = true;
+
+                    vertxEventBusService
+                            .send('prevayler-store', { action: 'get-events' }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.events = reply.events;
+                                    if (_.contains($localStorage.events, $localStorage.event)) {
+                                        $rootScope.sync();
+                                    } else {
+                                        $localStorage.event = null;
+                                        $localStorage.people = [];
+                                    }
+                                } else {
+                                    console.error('get-events returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot get-events', error);
+                            });
+                });
+
+                $rootScope.$on('vertx-eventbus.system.disconnected', function () {
+                    $rootScope.eventbus = false;
+                });
+
+                $rootScope.toggle = function (person) {
+                    person.presence = !person.presence;
+                    if ($rootScope.eventbus) {
+                        $rootScope.sync();
+                    }
+                };
+
+                $rootScope.select = function (event) {
+                    vertxEventBusService.send('prevayler-store', { action: 'get-people', 'event': event }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.event = event;
+                                    storePeople(reply.people);
+                                } else {
+                                    console.error('get-events returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot get-people from event', event, error);
+                            });
+                };
+
+                $rootScope.add = function (event) {
+                    vertxEventBusService.send('prevayler-store', { action: 'add-event', 'event': event.replace('#', '_').replace('?', '!') }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.events = reply.events;
+                                    $rootScope.sync();
+                                    delete $rootScope.new.event;
+                                } else {
+                                    console.error('add-event returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot add-event from event', event, error);
+                            });
+                };
+
+                $rootScope.delete = function (event) {
+                    vertxEventBusService.send('prevayler-store', { action: 'delete-event', 'event': event }, true)
+                            .then(function (reply) {
+                                if (reply.status == 'ok') {
+                                    $localStorage.events = reply.events;
+                                    if (event == $localStorage.event) { //TODO test that
+                                        $localStorage.event = null;
+                                        $localStorage.people = [];
+                                    }
+                                    delete $rootScope.delete.event; //BAD
+                                } else {
+                                    console.error('delete-event returned with error', reply.message);
+                                }
+                            })
+                            .catch(function (error) {
+                                console.error('Cannot delete-event', event, error);
+                            });
+                };
+
+                $rootScope.sync = function () {
+                    if ($localStorage.event) {
+                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }, true)
+                                .then(function (reply) {
+                                    if (reply.status == 'ok') {
+//                                        storePeople(reply.people); //No because the UI flickers
+                                        angular.forEach(reply.people, function (serverPerson) {
+                                            angular.forEach($localStorage.people, function (localPerson) {
+                                                if (serverPerson.firstname == localPerson.firstname && serverPerson.lastname == localPerson.lastname) {
+                                                    localPerson.remote = serverPerson.presence;
+                                                    localPerson.presence = serverPerson.presence;
+                                                    localPerson.attributes = serverPerson.attributes;
+                                                }
+                                            });
+                                        });
+                                    } else {
+                                        console.error('get-events returned with error', reply.message);
+                                    }
+                                })
+                                .catch(function (error) {
+                                    console.error('Cannot edit-presence from event', $localStorage.event, error);
+                                });
+                    }
+                };
+
+                $rootScope.onFileSelect = function (files) {
+                    $upload.upload({
+                        url: 'upload' + '/' + $localStorage.event,
+                        file: files[0]
+                    }).success(function (people, status, headers, config) {
+                        storePeople(people);
+                    }).error(function (error) {
+                        console.log("Upload error!", error);
+                    });
+                };
+            });
+</script>
+
+</body>
+</html>
