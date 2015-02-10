@@ -66,13 +66,6 @@
                             <code>.zpresence</code> de votre espace utilisateur</p>
                     </div>
                     <div class="list-group-item">
-                        <h4 class="list-group-item-heading">Un seul client (mobile/tablette/...) est prévu de se connecter à la fois</h4>
-
-                        <p class="list-group-item-text">Cela vient du fait que l'application est prévu de fonctionner en mode déconnecté</p>
-
-                        <p class="list-group-item-text">En effet, comment départager 2 clients déconnectés se connectant à nouveau ?</p>
-                    </div>
-                    <div class="list-group-item">
                         <h4 class="list-group-item-heading">Ca bug lorsque j'utilise des caractères bizarre dans le nom de l'évènement !</h4>
 
                         <p class="list-group-item-text">Cela vient du fait que j'ai voulut faire simple et utiliser le nom de l'event directement sans passer par un code ou un ID</p>
@@ -167,13 +160,13 @@
             </div>
         </div>
         <ul class="list-group">
-            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|orderBy:'lastname'|firstLetter" ng-if="person.firstLetter">
+            <li class="list-group-item first-letter" ng-repeat-start="person in $storage.people|filter:notPresentFilter|filter:filter.search|firstLetter" ng-if="person.firstLetter">
                 <span ng-bind="person.firstLetter"></span></li>
             <li class="list-group-item"
                 ng-repeat-end
-                ng-class="{'list-group-item-info':person.dirty,'text-muted':person.presence}">
+                ng-class="{'list-group-item-info':person.remote!=person.presence,'text-muted':person.presence}">
                 <button type="button" class="btn btn-default btn-xs pull-right" ng-click="person.details=!person.details" ng-if="person.attributes.length">détails</button>
-                <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&person.dirty,'btn-primary':person.presence&&!person.dirty}" ng-click="toggle(person)">
+                <button type="button" class="btn btn-xs" ng-class="{'btn-default':!person.presence,'btn-info':person.presence&&!person.remote,'btn-primary':person.presence&&person.remote}" ng-click="toggle(person)">
                     <span ng-if="person.presence">présent</span>
                     <span ng-if="!person.presence">non présent</span>
                 </button>
@@ -215,11 +208,13 @@
             })
             .filter('firstLetter', function () {
                 return function (people) {
+                    var sortedPeople = _.sortBy(people, function(p){return p.lastname.toUpperCase()});
                     var firstLetter;
-                    return _.each(people, function (person) {
-                        person.firstLetter = (person.lastname[0] != firstLetter) ? person.lastname[0] : null;
-                        firstLetter = person.lastname[0];
+                    angular.forEach(sortedPeople, function (person) {
+                        person.firstLetter = (person.lastname[0].toUpperCase() != firstLetter) ? person.lastname[0].toUpperCase() : null;
+                        firstLetter = person.lastname[0].toUpperCase();
                     });
+                    return sortedPeople;
                 }
             })
             .run(function ($rootScope, $localStorage, vertxEventBusService, $upload) {
@@ -229,6 +224,11 @@
                 $localStorage.people = $localStorage.people || [];
                 $rootScope.eventbus = false;
                 $rootScope.filter = {};
+
+                var storePeople = function(people){
+                    angular.forEach(people, function(person){ person.remote = person.presence; });
+                    $localStorage.people = people;
+                };
 
                 $rootScope.notPresentFilter = function (person) {
                     if ($rootScope.filter.notPresent) {
@@ -265,7 +265,6 @@
                 });
 
                 $rootScope.toggle = function (person) {
-                    person.dirty = true;
                     person.presence = !person.presence;
                     if ($rootScope.eventbus) {
                         $rootScope.sync();
@@ -277,7 +276,7 @@
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.event = event;
-                                    $localStorage.people = reply.people;
+                                    storePeople(reply.people);
                                 } else {
                                     console.error('get-events returned with error', reply.message);
                                 }
@@ -324,13 +323,16 @@
 
                 $rootScope.sync = function () {
                     if ($localStorage.event) {
-                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': $localStorage.people }, true)
+                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }, true)
                                 .then(function (reply) {
                                     if (reply.status == 'ok') {
+//                                        storePeople(reply.people); //No because the UI flickers
                                         angular.forEach(reply.people, function (serverPerson) {
                                             angular.forEach($localStorage.people, function (localPerson) {
                                                 if (serverPerson.firstname == localPerson.firstname && serverPerson.lastname == localPerson.lastname) {
-                                                    localPerson.dirty = (serverPerson.presence != localPerson.presence);
+                                                    localPerson.remote = serverPerson.presence;
+                                                    localPerson.presence = serverPerson.presence;
+                                                    localPerson.attributes = serverPerson.attributes;
                                                 }
                                             });
                                         });
@@ -349,7 +351,7 @@
                         url: 'upload' + '/' + $localStorage.event,
                         file: files[0]
                     }).success(function (people, status, headers, config) {
-                        $localStorage.people = people;
+                        storePeople(people);
                     }).error(function (error) {
                         console.log("Upload error!", error);
                     });

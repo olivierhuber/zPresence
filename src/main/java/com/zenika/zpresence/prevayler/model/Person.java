@@ -12,6 +12,7 @@ public class Person implements Serializable {
     public String firstname;
     public String lastname;
     public Boolean presence = false;
+//    public String nomLibreDeLaPersonneQuiAccueilEtValideCettePresence;
     public Set<String> attributes;
 
     public static Collection<Person> fromJson(JsonArray peopleAsJson) {
