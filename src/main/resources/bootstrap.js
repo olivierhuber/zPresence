@@ -32,7 +32,7 @@ container.deployWorkerVerticle('com.zenika.zpresence.prevayler.PrevaylerVerticle
                 console.log(webError);
                 console.log("Shutting down PrevaylerVerticle...");
                 container.undeployVerticle(prevaylerDeployID);
-                if (webError.message == "Address already in use") {
+                if (webError.message.indexOf("Address already in use") != -1) {
                     console.log("Open default browser on already running instance of ZPresence listening on port " + config.webServer.port);
                     java.awt.Desktop.getDesktop().browse(java.net.URI.create("http://127.0.0.1:" + config.webServer.port));
                 }
