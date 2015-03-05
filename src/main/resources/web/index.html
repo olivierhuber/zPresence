@@ -66,20 +66,24 @@
                             <code>.zpresence</code> de votre espace utilisateur</p>
                     </div>
                     <div class="list-group-item">
-                        <h4 class="list-group-item-heading">Ca bug lorsque j'utilise des caractères bizarre dans le nom de l'évènement !</h4>
+                        <h4 class="list-group-item-heading">Je veux utiliser l'application depuis mon smartphone/tablette</h4>
 
-                        <p class="list-group-item-text">Cela vient du fait que j'ai voulut faire simple et utiliser le nom de l'event directement sans passer par un code ou un ID</p>
+                        <p class="list-group-item-text" ng-show="ipScanner.isLocalhost()"><a href="" ng-click="ipScanner.redirect(3000)">Cliquez ici pour tenter de découvrir votre adresse IP local</a></p>
 
-                        <p class="list-group-item-text">Le nom de l'event est passé en paramètre de l'URL pour l'upload et download ...</p>
+                        <p class="list-group-item-text" ng-show="ipScanner.urls.length">Naviguez vers une de ces URL depuis votre mobile:
+                            <ul><li ng-repeat="url in ipScanner.urls"><a ng-href="{{url}}">{{url}}</a></li></ul>
+                        </p>
 
-                        <p class="list-group-item-text">Donc, oui il faut éviter certain caractères pour le moment</p>
+                        <p class="list-group-item-text text-danger" ng-show="ipScanner.isLocalhost()">Assurez vous que cet ordinateur soit connecté au réseau</p>
+
+                        <p class="list-group-item-text text-danger">Assurez vous que votre firewall ne bloque pas les connections entrante</p>
                     </div>
                     <div class="list-group-item">
                         <h4 class="list-group-item-heading">J'ai lancé l'appli en double-cliquant dessus ...</h4>
 
                         <p class="list-group-item-text">... et j'aimerais bien arrêter le serveur proprement sans chercher et tuer le process javaw ou java ;)</p>
 
-                        <p class="list-group-item-text text-danger"><a href="/exit" class="btn btn-danger btn-xs">Ok, clique <span class="glyphicon glyphicon-off"></span></a></p>
+                        <p class="list-group-item-text text-danger"><a href="/exit" class="btn btn-danger btn-xs">Ok, cliquez ici <span class="glyphicon glyphicon-off"></span> pour arrêter l'application proprement</a></p>
                     </div>
                 </div>
             </div>
@@ -217,13 +221,47 @@
                     return sortedPeople;
                 }
             })
-            .run(function ($rootScope, $localStorage, vertxEventBusService, $upload) {
+            .factory('IpScanner', function($http, $q, $timeout, $location, $window) {
+                var IpScanner = {
+                    urls : [],
+                    isLocalhost : function(){ return $location.host().indexOf("127.0.0.1") == 0 || $location.host().indexOf("0.0.0.0") == 0 || $location.host().indexOf("localhost") == 0; },
+                    redirect : function(timeout){
+                        $http.get('http://'+$location.host()+':'+$location.port()+'/ips').success(function(ips) {
+                            if (ips.length) {
+                                IpScanner.urls = [];
+                                var firstValidIp = $q.defer();
+                                angular.forEach(ips, function (ip) {
+                                    console.log('Trying out', ip);
+                                    $http.get('http://' + ip + ':' + $location.port() + '/ips').then(function () {
+                                        IpScanner.urls.push('http://' + ip + ':' + $location.port() + '/');
+                                        firstValidIp.resolve(ip);
+                                    });
+                                });
+                                $timeout(function () {
+                                    firstValidIp.reject('timeout');
+                                }, timeout);
+                                firstValidIp.promise.then(function (ip) {
+                                    if (IpScanner.isLocalhost()) {
+                                        $window.location.href = 'http://' + ip + ':' + $location.port();
+                                    }
+                                }, function(reason){ console.log('Nope!', reason, 'No other local address found!'); });
+                            }
+                        });
+                    }
+                };
+                return IpScanner;
+            })
+            .run(function ($rootScope, $localStorage, vertxEventBusService, $upload, IpScanner) {
                 $rootScope.$storage = $localStorage;
                 $localStorage.event = $localStorage.event || null;
                 $localStorage.events = $localStorage.events || [];
                 $localStorage.people = $localStorage.people || [];
                 $rootScope.eventbus = false;
                 $rootScope.filter = {};
+
+                $rootScope.ipScanner = IpScanner;
+
+                IpScanner.redirect(2000);
 
                 var storePeople = function(people){
                     angular.forEach(people, function(person){ person.remote = person.presence; });

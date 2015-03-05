@@ -18,6 +18,10 @@ import org.vertx.mods.web.WebServerBase;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,6 +32,22 @@ public class RestVerticle extends WebServerBase {
     @Override
     protected RouteMatcher routeMatcher() {
         RouteMatcher matcher = new RouteMatcher();
+
+        matcher.get("/ips", request -> {
+            JsonArray ips = new JsonArray();
+            try {
+                for (NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                    if (!networkInterface.isUp() || networkInterface.isLoopback() || networkInterface.isVirtual()) continue;
+                    for (InetAddress inetAddress : Collections.list(networkInterface.getInetAddresses())) {
+                        if (inetAddress.isLoopbackAddress() || !inetAddress.isSiteLocalAddress()) continue;
+                        ips.addString(inetAddress.getHostAddress());
+                    }
+                }
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            request.response().putHeader(CONTENT_TYPE, "application/json").putHeader("Access-Control-Allow-Origin", "*").end(ips.toString());
+        });
 
         matcher.post("/upload/:event", request -> {
             final String event = QueryStringDecoder.decodeComponent(request.params().get("event"));

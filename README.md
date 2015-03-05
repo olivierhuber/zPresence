@@ -22,6 +22,11 @@ IDEAS
 =====
 - Base64 du nom de l'évènement dans l'URL serait un plus ;) tant pis pour la lisibilité de l'url
 
+TODO
+=====
+- Base64 du nom de l'évènement dans l'URL - tant pis pour la lisibilité de l'url
+- Ajouter un form avec [prenom], [nom] voir [attributes] et un bouton [ajouter] - tout de même vérifier les effets de bord (import, etc)
+
 BUILD
 ---
     mvn clean package vertx:fatJar
