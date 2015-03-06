@@ -1,5 +1,6 @@
 package com.zenika.zpresence.prevayler;
 
+import com.hazelcast.util.StringUtil;
 import com.zenika.zpresence.ZenPresence;
 import com.zenika.zpresence.prevayler.command.*;
 import com.zenika.zpresence.prevayler.migration.JsonSnapshotMigration;
@@ -141,19 +142,18 @@ public class PrevaylerVerticle extends ZenPresence {
 
     void addEvent(Message<JsonObject> message) {
         try {
-            String event = message.body().getString("event");
+            String event = message.body().getString("event").trim();
+            if (StringUtil.isNullOrEmpty(event)) {
+                throw new Exception("Event(" + event + ") is Null or Empty!");
+            }
             if (!prevayler.execute(new AddEvent(event))) {
                 throw new Exception("Event(" + event + ") already exist!");
             }
-
             snapshot();
-
-            Collection<String> events = prevayler.execute(new GetEvents());
-
-            sendOK(message, array("events", Zenika.toJson(events)));
         } catch (Exception e) {
             sendError(message, "addEvent", e);
         }
+        getEvents(message);
     }
 
     void deleteEvent(Message<JsonObject> message) {
@@ -162,15 +162,11 @@ public class PrevaylerVerticle extends ZenPresence {
             if (!prevayler.execute(new DeleteEvent(event))) {
                 throw new Exception("Event(" + event + ") does not exist!");
             }
-
             snapshot();
-
-            Collection<String> events = prevayler.execute(new GetEvents());
-
-            sendOK(message, array("events", Zenika.toJson(events)));
         } catch (Exception e) {
             sendError(message, "deleteEvent", e);
         }
+        getEvents(message);
     }
 
     void editPresence(Message<JsonObject> message) {

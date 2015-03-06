@@ -1,6 +1,6 @@
 package com.zenika.zpresence;
 
-import io.netty.handler.codec.http.QueryStringDecoder;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -50,7 +50,7 @@ public class RestVerticle extends WebServerBase {
         });
 
         matcher.post("/upload/:event", request -> {
-            final String event = QueryStringDecoder.decodeComponent(request.params().get("event"));
+            final String event = new String(Base64.decodeBase64(request.params().get("event")));
 
             request.expectMultiPart(true);
             request.uploadHandler(upload -> {
@@ -75,7 +75,7 @@ public class RestVerticle extends WebServerBase {
         });
 
         matcher.get("/export/:event", request -> {
-            final String event = QueryStringDecoder.decodeComponent(request.params().get("event").replace(".xls", ""));
+            final String event = new String(Base64.decodeBase64(request.params().get("event").replace(".xls", "")));
 
             eb.send("prevayler-store", new JsonObject().putString("action", "get-people").putString("event", event), (Message<JsonObject> message) -> {
                 if ("ok".equals(message.body().getString("status"))) {

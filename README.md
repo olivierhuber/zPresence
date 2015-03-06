@@ -16,15 +16,14 @@ C'est du WebSocket avec du SockJS branché sur le bus Vert.x ... trop d'la balle
 
 ISSUES
 ===
-- Le fait que l'on export en utilisant le nom de l'event dans l'URL a ses limitation pour nommer les evenements ...
+-
 
 IDEAS
 =====
-- Base64 du nom de l'évènement dans l'URL serait un plus ;) tant pis pour la lisibilité de l'url
+-
 
 TODO
 =====
-- Base64 du nom de l'évènement dans l'URL - tant pis pour la lisibilité de l'url
 - Ajouter un form avec [prenom], [nom] voir [attributes] et un bouton [ajouter] - tout de même vérifier les effets de bord (import, etc)
 
 BUILD
@@ -88,7 +87,7 @@ success reply
     {
         status: "ok",
         events: [
-            <string>
+            {id: <string>, name: <string>}
         ]
     }
 
@@ -104,7 +103,7 @@ success reply
     {
         status: "ok",
         events: [
-            <string>
+            {id: <string>, name: <string>}
         ]
     }
 
@@ -119,7 +118,7 @@ success reply
     {
         status: "ok",
         events: [
-            <string>
+            {id: <string>, name: <string>}
         ]
     }
 

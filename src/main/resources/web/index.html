@@ -83,7 +83,7 @@
 
                         <p class="list-group-item-text">... et j'aimerais bien arrêter le serveur proprement sans chercher et tuer le process javaw ou java ;)</p>
 
-                        <p class="list-group-item-text text-danger"><a href="/exit" class="btn btn-danger btn-xs">Ok, cliquez ici <span class="glyphicon glyphicon-off"></span> pour arrêter l'application proprement</a></p>
+                        <p class="list-group-item-text text-danger"><a href="/exit" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-off"></span> arrêter l'application</a></p>
                     </div>
                 </div>
             </div>
@@ -103,13 +103,13 @@
                     <p class="lead text-muted text-center">Ajouter un événement !</p>
                 </div>
                 <ul class="list-group">
-                    <li class="list-group-item" ng-class="{'list-group-item-info':event == $storage.event}" ng-repeat="event in $storage.events">
-                        <div class="btn-group btn-group-sm pull-right" ng-if="event == $storage.event">
+                    <li class="list-group-item" ng-class="{'list-group-item-info':event.id == $storage.event.id}" ng-repeat="event in $storage.events">
+                        <div class="btn-group btn-group-sm pull-right" ng-if="event.id == $storage.event.id">
                             <button type="button" class="btn btn-default" ng-file-select="onFileSelect($files)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-multiple="false">
                                 <span class="glyphicon glyphicon-cloud-upload"></span></button>
-                            <a ng-if="event == $storage.event" ng-href="export/{{$storage.event}}.xls" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
+                            <a ng-if="event.id == $storage.event.id" ng-href="export/{{$storage.event.id}}.xls" target="_blank" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span></a>
                         </div>
-                        <h5><a href="#" ng-bind="event" ng-click="select(event)"></a></h5>
+                        <h5><a href="#" ng-bind="event.name" ng-click="select(event)"></a></h5>
                     </li>
                 </ul>
                 <div class="well well-sm" ng-if="$storage.event && $storage.events.length">
@@ -123,6 +123,7 @@
                             <th>Autres colonnes reprisent tel quel ...</th>
                         </tr>
                     </table>
+                    <p class="text-danger">Si vous copier/coller des cellules Excel, assurez vous ne ne coller que les valeurs et qu'il n'y ait pas de style sur les cellules (couleurs, bordures, etc...)<br/>Utiliser la fonction "coller que les valeurs" ou un truc comme ça</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -149,7 +150,7 @@
 <div class="container-fluid">
     <div class="panel panel-default" ng-if="$storage.event">
         <div class="panel-heading">
-            <h3 class="panel-title" ng-bind="$storage.event"></h3>
+            <h3 class="panel-title" ng-bind="$storage.event.name"></h3>
         </div>
         <div class="panel-body">
             <div class="row">
@@ -283,7 +284,7 @@
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.events = reply.events;
-                                    if (_.contains($localStorage.events, $localStorage.event)) {
+                                    if ($localStorage.event && _.find($localStorage.events, 'id', $localStorage.event.id)) {
                                         $rootScope.sync();
                                     } else {
                                         $localStorage.event = null;
@@ -310,7 +311,7 @@
                 };
 
                 $rootScope.select = function (event) {
-                    vertxEventBusService.send('prevayler-store', { action: 'get-people', 'event': event }, true)
+                    vertxEventBusService.send('prevayler-store', { action: 'get-people', 'event': event.name }, true)
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.event = event;
@@ -325,7 +326,7 @@
                 };
 
                 $rootScope.add = function (event) {
-                    vertxEventBusService.send('prevayler-store', { action: 'add-event', 'event': event.replace('#', '_').replace('?', '!') }, true)
+                    vertxEventBusService.send('prevayler-store', { action: 'add-event', 'event': event }, true)
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.events = reply.events;
@@ -345,7 +346,7 @@
                             .then(function (reply) {
                                 if (reply.status == 'ok') {
                                     $localStorage.events = reply.events;
-                                    if (event == $localStorage.event) { //TODO test that
+                                    if (event == $localStorage.event.name) { //TODO test that
                                         $localStorage.event = null;
                                         $localStorage.people = [];
                                     }
@@ -361,7 +362,7 @@
 
                 $rootScope.sync = function () {
                     if ($localStorage.event) {
-                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }, true)
+                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event.name, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }, true)
                                 .then(function (reply) {
                                     if (reply.status == 'ok') {
 //                                        storePeople(reply.people); //No because the UI flickers
@@ -386,7 +387,7 @@
 
                 $rootScope.onFileSelect = function (files) {
                     $upload.upload({
-                        url: 'upload' + '/' + $localStorage.event,
+                        url: 'upload' + '/' + $localStorage.event.id,
                         file: files[0]
                     }).success(function (people, status, headers, config) {
                         storePeople(people);

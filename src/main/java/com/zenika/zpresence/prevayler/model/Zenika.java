@@ -3,7 +3,9 @@ package com.zenika.zpresence.prevayler.model;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.commons.codec.binary.Base64;
 import org.vertx.java.core.json.JsonArray;
+import org.vertx.java.core.json.JsonObject;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -23,7 +25,9 @@ public class Zenika implements Serializable {
 
     public static JsonArray toJson(Collection<String> events) {
         try {
-            return new JsonArray(Zenika.jsonMapper.writeValueAsString(events));
+            JsonArray results = new JsonArray();
+            events.stream().forEach(event -> results.addObject(new JsonObject().putString("id", Base64.encodeBase64URLSafeString(event.getBytes())).putString("name", event)));
+            return results;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
