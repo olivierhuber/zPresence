@@ -5,7 +5,7 @@ Coucou, on a eu un besoin sur Paris et je pense que ça peut intéresser certain
 
 Voila, on avait besoin pour un évènement (comme une NightClazz au hasard) d'accueillir avec son mobile ou tablette (avec perte de connexion internet possible) chaque personne qui arrive et cliquer sur "présent" devant leur nom et ensuite revenir à son poste et avoir un export Excel avec tout les présents ;)
 
-Je vous laisse tester le bousin en attaché de ce mail : ATTENTION Java 8 minimum
+ATTENTION Java 8 minimum
 
 Alors vous double-cliquez dessus (pour les windows) ou vous lancer un java -jar
 
@@ -24,7 +24,7 @@ IDEAS
 
 TODO
 =====
-- Ajouter un form avec [prenom], [nom] voir [attributes] et un bouton [ajouter] - tout de même vérifier les effets de bord (import, etc)
+-
 
 BUILD
 ---
@@ -152,7 +152,8 @@ success reply
             {
                     firstname: <string>,
                     lastname: <string>,
-                    presence: <bool>
+                    presence: <bool>,
+                    attributes: [optional <string>]
             }
         ]
     }     

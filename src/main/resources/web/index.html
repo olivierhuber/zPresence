@@ -58,12 +58,14 @@
                 <div class="list-group">
                     <div class="list-group-item">
                         <h4 class="list-group-item-heading">Import de données</h4>
-
-                        <p class="list-group-item-text">Vous pouvez soit utiliser l'import par fichier Excel</p>
-
-                        <p class="list-group-item-text">Soit (en ayant arrêté le serveur) éditer directement le fichier
+                        <ul>
+                        <li>Vous pouvez utiliser l'import par fichier Excel</li>
+                        <li>Éditer (en ayant arrêté le serveur) directement le fichier
                             <code>.jsonSnapshot</code> présent dans le répertoire
-                            <code>.zpresence</code> de votre espace utilisateur</p>
+                            <code>.zpresence</code> de votre espace utilisateur
+                        </li>
+                        <li>Ajouter les contacts (occasionel) un à un au moyen de l'interface graphique</li>
+                        </ul>
                     </div>
                     <div class="list-group-item">
                         <h4 class="list-group-item-heading">Je veux utiliser l'application depuis mon smartphone/tablette</h4>
@@ -150,10 +152,11 @@
 <div class="container-fluid">
     <div class="panel panel-default" ng-if="$storage.event">
         <div class="panel-heading">
+            <button type="button" class="btn btn-default btn-xs pull-right" ng-click="filter.view=!filter.view"><span class="glyphicon" ng-class="{'glyphicon-search':!filter.view,'glyphicon-plus':filter.view}"></span></button>
             <h3 class="panel-title" ng-bind="$storage.event.name"></h3>
         </div>
         <div class="panel-body">
-            <div class="row">
+            <div class="row" ng-show="filter.view">
                 <div class="col-xs-8">
                     <input type="text" ng-model="filter.search" class="form-control" placeholder="Filtre"/>
                 </div>
@@ -161,6 +164,30 @@
                     <label>
                         <input type="checkbox" ng-model="filter.notPresent"> non présent
                     </label>
+                </div>
+            </div>
+            <div class="row" ng-show="!filter.view">
+                <div class="form-group col-xs-12">
+                    <input type="text" ng-model="guest.firstname" class="form-control" placeholder="Prénom"/>
+                </div>
+                <div class="form-group col-xs-12">
+                    <input type="text" ng-model="guest.lastname" class="form-control" placeholder="Nom de famille"/>
+                </div>
+                <div class="form-group col-xs-12" ng-repeat="attribute in guest.attributes">
+                    <input type="text" class="form-control" ng-model="attribute.value" placeholder="{{attribute.placeholder}}"/>
+                </div>
+                <div class="form-group col-xs-12">
+                    <input type="button" value="Nouvel attribut" class="btn btn-default btn-sm" ng-click="guest.attributes.push({value:'',placeholder:''})">
+                </div>
+                <div class="form-group col-xs-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="guest.presence"> présent
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-xs-12">
+                    <input type="submit" value="Ajouter" class="btn btn-primary btn-sm" ng-click="addGuest()">
                 </div>
             </div>
         </div>
@@ -178,7 +205,7 @@
                 <span ng-bind="person.firstname"></span>
                 <span ng-bind="person.lastname"></span>
                 <ul class="list-unstyled" ng-show="person.details">
-                    <li ng-repeat="attribute in person.attributes"><span ng-bind="attribute"></span></li>
+                    <li ng-repeat="attribute in person.attributes track by $index"><span ng-bind="attribute"></span></li>
                 </ul>
             </li>
         </ul>
@@ -252,13 +279,58 @@
                 };
                 return IpScanner;
             })
-            .run(function ($rootScope, $localStorage, vertxEventBusService, $upload, IpScanner) {
+            .factory('PrevaylerStore', function($q, vertxEventBusService) {
+                return {
+                    send: function (action, results, payload) {
+                        var deferred = $q.defer();
+                        var message = { action: action };
+                        angular.extend(message, payload);
+                        vertxEventBusService.send('prevayler-store', message, true)
+                                .then(function (reply) {
+                                    if (reply['status'] == 'ok') {
+                                        deferred.resolve(reply[results]);
+                                    } else {
+                                        console.error('EvenBus prevayler-store', action, 'replied', reply['message']);
+                                        deferred.reject('EvenBus prevayler-store ' + action + ' replied ' + reply['message']);
+                                    }
+                                })
+                                .catch(function (error) {
+                                    console.error('EventBus error', error);
+                                    deferred.reject('EventBus error ' + error);
+                                });
+                        return deferred.promise;
+                    }
+                }
+            })
+            .run(function ($rootScope, $localStorage, PrevaylerStore, $upload, IpScanner) {
                 $rootScope.$storage = $localStorage;
                 $localStorage.event = $localStorage.event || null;
                 $localStorage.events = $localStorage.events || [];
                 $localStorage.people = $localStorage.people || [];
                 $rootScope.eventbus = false;
-                $rootScope.filter = {};
+                $rootScope.filter = {view:true};
+
+                $rootScope.$watch('filter.view', function(filter){
+                    if (!filter) {
+                        var attributes = [];
+                        angular.forEach($localStorage.people, function(person) {
+                            var i = 0;
+                            angular.forEach(person.attributes, function(attribute) {
+                                attributes[i] = attributes[i] || [];
+                                attributes[i++].push(attribute);
+                            });
+                        });
+                        $rootScope.guest = {
+                            firstname: '',
+                            lastname: '',
+                            attributes: [],
+                            presence: true
+                        };
+                        angular.forEach(attributes, function(attribute) {
+                            $rootScope.guest.attributes.push({value:'',placeholder:_.take(_.compact(_.uniq(attribute)), 3).join()});
+                        });
+                    }
+                });
 
                 $rootScope.ipScanner = IpScanner;
 
@@ -279,24 +351,15 @@
                 $rootScope.$on('vertx-eventbus.system.connected', function () {
                     $rootScope.eventbus = true;
 
-                    vertxEventBusService
-                            .send('prevayler-store', { action: 'get-events' }, true)
-                            .then(function (reply) {
-                                if (reply.status == 'ok') {
-                                    $localStorage.events = reply.events;
-                                    if ($localStorage.event && _.find($localStorage.events, 'id', $localStorage.event.id)) {
-                                        $rootScope.sync();
-                                    } else {
-                                        $localStorage.event = null;
-                                        $localStorage.people = [];
-                                    }
-                                } else {
-                                    console.error('get-events returned with error', reply.message);
-                                }
-                            })
-                            .catch(function (error) {
-                                console.error('Cannot get-events', error);
-                            });
+                    PrevaylerStore.send('get-events', 'events').then(function(events){
+                        $localStorage.events = events;
+                        if ($localStorage.event && _.find($localStorage.events, 'id', $localStorage.event.id)) {
+                            $rootScope.sync();
+                        } else {
+                            $localStorage.event = null;
+                            $localStorage.people = [];
+                        }
+                    });
                 });
 
                 $rootScope.$on('vertx-eventbus.system.disconnected', function () {
@@ -311,77 +374,69 @@
                 };
 
                 $rootScope.select = function (event) {
-                    vertxEventBusService.send('prevayler-store', { action: 'get-people', 'event': event.name }, true)
-                            .then(function (reply) {
-                                if (reply.status == 'ok') {
-                                    $localStorage.event = event;
-                                    storePeople(reply.people);
-                                } else {
-                                    console.error('get-events returned with error', reply.message);
-                                }
-                            })
-                            .catch(function (error) {
-                                console.error('Cannot get-people from event', event, error);
-                            });
+                    PrevaylerStore.send('get-people', 'people', { 'event': event.name }).then(function(people){
+                        $localStorage.event = event;
+                        storePeople(people);
+                        $rootScope.filter.view = true;
+                    });
                 };
 
                 $rootScope.add = function (event) {
-                    vertxEventBusService.send('prevayler-store', { action: 'add-event', 'event': event }, true)
-                            .then(function (reply) {
-                                if (reply.status == 'ok') {
-                                    $localStorage.events = reply.events;
-                                    $rootScope.sync();
-                                    delete $rootScope.new.event;
-                                } else {
-                                    console.error('add-event returned with error', reply.message);
-                                }
-                            })
-                            .catch(function (error) {
-                                console.error('Cannot add-event from event', event, error);
-                            });
+                    PrevaylerStore.send('add-event', 'events', { 'event': event }).then(function(events){
+                        $localStorage.events = events;
+                        $rootScope.sync();
+                        delete $rootScope.new.event;
+                    });
                 };
 
                 $rootScope.delete = function (event) {
-                    vertxEventBusService.send('prevayler-store', { action: 'delete-event', 'event': event }, true)
-                            .then(function (reply) {
-                                if (reply.status == 'ok') {
-                                    $localStorage.events = reply.events;
-                                    if (event == $localStorage.event.name) { //TODO test that
-                                        $localStorage.event = null;
-                                        $localStorage.people = [];
-                                    }
-                                    delete $rootScope.delete.event; //BAD
-                                } else {
-                                    console.error('delete-event returned with error', reply.message);
-                                }
-                            })
-                            .catch(function (error) {
-                                console.error('Cannot delete-event', event, error);
-                            });
+                    PrevaylerStore.send('delete-event', 'events', { 'event': event }).then(function(events){
+                        $localStorage.events = events;
+                        if (event == $localStorage.event.name) { //TODO test that
+                            $localStorage.event = null;
+                            $localStorage.people = [];
+                        }
+                        delete $rootScope.delete.event; //BAD
+                    });
+                };
+
+                $rootScope.addGuest = function () {
+                    if (_.trim($rootScope.guest.firstname).length && _.trim($rootScope.guest.lastname).length) {
+                        var attributes = _.map($rootScope.guest.attributes, 'value');
+                        attributes = _.some(attributes, function(attribute){ return attribute != ''; }) ? attributes : [];
+                        $localStorage.people.push({
+                            firstname: $rootScope.guest.firstname,
+                            lastname: $rootScope.guest.lastname,
+                            attributes: attributes,
+                            presence: $rootScope.guest.presence
+                        });
+                        $rootScope.filter.view = true;
+                        if ($rootScope.eventbus) {
+                            $rootScope.sync();
+                        }
+                    }
                 };
 
                 $rootScope.sync = function () {
                     if ($localStorage.event) {
-                        vertxEventBusService.send('prevayler-store', { action: 'edit-presence', 'event': $localStorage.event.name, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }, true)
-                                .then(function (reply) {
-                                    if (reply.status == 'ok') {
-//                                        storePeople(reply.people); //No because the UI flickers
-                                        angular.forEach(reply.people, function (serverPerson) {
-                                            angular.forEach($localStorage.people, function (localPerson) {
-                                                if (serverPerson.firstname == localPerson.firstname && serverPerson.lastname == localPerson.lastname) {
-                                                    localPerson.remote = serverPerson.presence;
-                                                    localPerson.presence = serverPerson.presence;
-                                                    localPerson.attributes = serverPerson.attributes;
-                                                }
-                                            });
-                                        });
-                                    } else {
-                                        console.error('get-events returned with error', reply.message);
+                        PrevaylerStore.send('edit-presence', 'people', { 'event': $localStorage.event.name, 'people': _.filter($localStorage.people, function(person){ return person.presence != person.remote }) }).then(function(people){
+//                          storePeople(reply.people); //No because the UI flickers
+                            angular.forEach(people, function (serverPerson) {
+                                var found = false;
+                                angular.forEach($localStorage.people, function (localPerson) {
+                                    if (serverPerson.firstname == localPerson.firstname && serverPerson.lastname == localPerson.lastname) {
+                                        found = true;
+                                        localPerson.remote = serverPerson.presence;
+                                        localPerson.presence = serverPerson.presence;
+                                        localPerson.attributes = serverPerson.attributes;
                                     }
-                                })
-                                .catch(function (error) {
-                                    console.error('Cannot edit-presence from event', $localStorage.event, error);
                                 });
+                                if (!found) {
+                                    serverPerson.remote = serverPerson.presence;
+                                    $localStorage.people.push(serverPerson);
+                                }
+                            });
+                        });
                     }
                 };
 
@@ -390,6 +445,7 @@
                         url: 'upload' + '/' + $localStorage.event.id,
                         file: files[0]
                     }).success(function (people, status, headers, config) {
+                        $rootScope.filter.view = true;
                         storePeople(people);
                     }).error(function (error) {
                         console.log("Upload error!", error);

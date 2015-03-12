@@ -22,7 +22,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.vertx.java.core.http.HttpHeaders.CONTENT_TYPE;
@@ -129,13 +128,14 @@ public class RestVerticle extends WebServerBase {
             Sheet firstSheet = wb.getSheetAt(0);
             logger.info("Reading " + firstSheet.getLastRowNum() + 1 + " rows from first sheet");
             firstSheet.forEach(row -> {
-                logger.debug("Parse row #" + row.getRowNum());
-                Iterator<Cell> cellIterator = row.cellIterator();
+                logger.debug("Parse row #" + row.getRowNum() + " with " + row.getLastCellNum()+1 + " cols");
                 JsonObject person = new JsonObject();
-                person.putString("firstname", cellIterator.hasNext() ? string(cellIterator.next()) : null);
-                person.putString("lastname", cellIterator.hasNext() ? string(cellIterator.next()) : null);
+                person.putString("firstname", string(row.getCell(0)));
+                person.putString("lastname", string(row.getCell(1)));
                 JsonArray attributes = new JsonArray();
-                cellIterator.forEachRemaining(cell -> attributes.add(string(cell)));
+                for (int i = 2; i < row.getLastCellNum(); i++) {
+                    attributes.add(string(row.getCell(i)));
+                }
                 people.addObject(person.putArray("attributes", attributes));
             });
         } catch (Exception e) {
@@ -147,6 +147,9 @@ public class RestVerticle extends WebServerBase {
     }
 
     String string(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
 //        try {
 //            return Long.toString(cell.getDateCellValue().getTime());
 //        } catch (Exception e1) {

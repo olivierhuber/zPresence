@@ -5,7 +5,7 @@ import org.vertx.java.core.json.JsonObject;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 public class Person implements Serializable {
     public static final long serialVersionUID = 1L;
@@ -13,7 +13,7 @@ public class Person implements Serializable {
     public String lastname;
     public Boolean presence = false;
 //    public String nomLibreDeLaPersonneQuiAccueilEtValideCettePresence;
-    public Set<String> attributes;
+    public List<String> attributes;
 
     public static Collection<Person> fromJson(JsonArray peopleAsJson) {
         try {
